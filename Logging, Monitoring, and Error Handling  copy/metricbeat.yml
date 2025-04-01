@@ -1,0 +1,38 @@
+metricbeat.modules:
+- module: prometheus
+  period: 10s
+  hosts: ["prometheus:9090"]
+  metrics_path: /metrics
+  namespace: prometheus
+
+  # Collect metrics from Prometheus itself
+  metrics_filters:
+    include: [".*"]
+
+- module: prometheus
+  period: 10s
+  hosts: ["host.docker.internal:8000"]
+  metrics_path: /metrics
+  namespace: orchestrator
+
+  # Collect metrics from the orchestrator
+  metrics_filters:
+    include: [".*"]
+
+# Additional modules can be added for system metrics, etc.
+
+processors:
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+  - add_host_metadata: ~
+
+output.elasticsearch:
+  hosts: ["https://aiif-logging.es.us-east-2.aws.elastic-cloud.com:443"]
+  username: "elastic"
+  password: "8gwuBTOzZjmVMVqSMLqqtEcP"
+  ssl.enabled: true
+  indices:
+    - index: "metricbeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+logging.json: true
+logging.metrics.enabled: false

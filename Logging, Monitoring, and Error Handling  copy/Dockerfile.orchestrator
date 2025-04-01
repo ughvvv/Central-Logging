@@ -1,0 +1,18 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application files
+COPY logger_util.py .
+COPY metrics.py .
+COPY orchestrator.py .
+
+# Expose port for metrics
+EXPOSE 8000
+
+# Run the orchestrator
+CMD ["python", "orchestrator.py"]

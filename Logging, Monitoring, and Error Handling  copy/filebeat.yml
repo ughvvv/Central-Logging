@@ -1,0 +1,28 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    # Removed json.* keys, rely on decode_json_fields processor
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+processors:
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+
+output.elasticsearch:
+  hosts: ["https://aiif-logging.es.us-east-2.aws.elastic-cloud.com:443"]
+  username: "elastic"
+  password: "8gwuBTOzZjmVMVqSMLqqtEcP"
+  ssl.enabled: true
+  indices:
+    - index: "orchestrator-logs-%{+yyyy.MM.dd}"
+      when.contains:
+        container.name: "orchestrator"
+    - index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+logging.json: true
+logging.metrics.enabled: false
